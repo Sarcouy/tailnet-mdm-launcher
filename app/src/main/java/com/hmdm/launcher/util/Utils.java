@@ -422,9 +422,24 @@ public class Utils {
     public static void initPasswordReset(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                String token = getDataToken(context);
                 DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
                 ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+                // Prevent accumulation of pending tokens
+                // as per the solution suggested in https://github.com/h-mdm/hmdm-android/issues/53
+
+                // Nothing to do if a token is already registered and active.
+                if (dpm.isResetPasswordTokenActive(adminComponentName)) {
+                    return;
+                }
+                // Release any previously registered token so its Weaver slot is freed
+                // before a new one is allocated.
+                try {
+                    dpm.clearResetPasswordToken(adminComponentName);
+                } catch (Exception ignored) {
+                }
+
+                String token = getDataToken(context);
                 if (dpm.setResetPasswordToken(adminComponentName, token.getBytes())) {
                     if (!dpm.isResetPasswordTokenActive(adminComponentName)) {
                         RemoteLogger.log(context, Const.LOG_WARN, "Password reset token will be activated once the user enters the current password next time.");
