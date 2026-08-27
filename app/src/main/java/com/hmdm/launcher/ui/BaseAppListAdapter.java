@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -60,6 +61,7 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
     protected boolean dpadUsed = false;
 
     protected Picasso picasso = null;
+    protected Map<String, ImageView> customIconViewMap = new HashMap<>();
 
     public BaseAppListAdapter(Activity parentActivity, MainAppListAdapter.OnAppChooseListener appChooseListener, MainAppListAdapter.SwitchAdapterListener switchAdapterListener) {
         layoutInflater = LayoutInflater.from(parentActivity);
@@ -153,14 +155,18 @@ public abstract class BaseAppListAdapter extends RecyclerView.Adapter<BaseAppLis
                         public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
                             // On fault, get the image from the cache
                             // This is a workaround against a bug in Picasso: it doesn't display cached images by default!
-                            picasso.load(appInfo.iconUrl)
-                                    .networkPolicy(NetworkPolicy.OFFLINE)
-                                    .into(holder.binding.imageView);
+                            ImageView viewForUri = customIconViewMap.get(uri.toString());
+                            if (viewForUri != null) {
+                                picasso.load(uri)
+                                        .networkPolicy(NetworkPolicy.OFFLINE)
+                                        .into(viewForUri);
+                            }
                         }
                     });
                     picasso = builder.build();
                 }
 
+                customIconViewMap.put(appInfo.iconUrl, holder.binding.imageView);
                 picasso.load(appInfo.iconUrl)
                         .into(holder.binding.imageView);
             } else {
