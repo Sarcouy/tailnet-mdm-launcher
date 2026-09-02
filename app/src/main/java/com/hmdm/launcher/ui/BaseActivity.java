@@ -125,6 +125,10 @@ public class BaseActivity extends AppCompatActivity {
             if (serial != null && !serial.equals(Build.UNKNOWN)) {
                 variantsList.add(serial);
             }
+            String mac = DeviceInfoProvider.getMacAddress(this);
+            if (mac != null) {
+                variantsList.add(mac);
+            }
         }
         if (variantsList.size() > 0) {
             String[] variantsArray = variantsList.toArray(new String[variantsList.size()]);

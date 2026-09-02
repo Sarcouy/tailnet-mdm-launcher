@@ -69,9 +69,7 @@ public class Initializer {
 
             ConnectionWaiter.waitForConnect(context, () -> {
                 DetailedInfoWorker.schedule(context);
-                if (BuildConfig.ENABLE_PUSH) {
-                    PushNotificationWorker.schedule(context);
-                }
+                PushNotificationWorker.schedule(context);
                 ScheduledAppUpdateWorker.schedule(context);
 
                 // Run completion in the UI thread
@@ -92,7 +90,7 @@ public class Initializer {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.MQTT_SERVICE_FOREGROUND && BuildConfig.ENABLE_PUSH && pushOptions != null) {
+        if (BuildConfig.MQTT_SERVICE_FOREGROUND && pushOptions != null) {
             if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                     || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
                 try {

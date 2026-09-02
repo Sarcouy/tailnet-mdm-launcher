@@ -73,6 +73,7 @@ public class MdmChoiceSetupActivity extends AppCompatActivity {
             } else if (BuildConfig.DEVICE_ID_CHOICE.equals("serial") || "serial".equals(deviceIdUse)) {
                 deviceId = intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER);
             } else {
+                // MAC address is not available here, because the app isn't a device owner yet
                 displayEnterDeviceIdDialog(intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_IMEI),
                         intent.getStringExtra(DevicePolicyManager.EXTRA_PROVISIONING_SERIAL_NUMBER));
                 return;

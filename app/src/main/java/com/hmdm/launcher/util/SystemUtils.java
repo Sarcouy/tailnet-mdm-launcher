@@ -100,8 +100,8 @@ public class SystemUtils {
             if (deviceId.equals(Build.UNKNOWN)) {
                 deviceId = null;
             }
-        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("mac")) {
-            deviceId = DeviceInfoProvider.getMacAddress();
+        } else if (BuildConfig.DEVICE_ID_CHOICE.equals("mac") || "mac".equals(deviceIdUse)) {
+            deviceId = DeviceInfoProvider.getMacAddress(context);
         }
 
         if (deviceId == null || deviceId.length() == 0) {

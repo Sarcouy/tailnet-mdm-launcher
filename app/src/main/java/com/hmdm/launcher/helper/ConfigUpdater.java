@@ -286,7 +286,7 @@ public class ConfigUpdater {
                 keepaliveTime = newKeepaliveTime;
             }
         }
-        if (BuildConfig.ENABLE_PUSH && pushOptions != null) {
+        if (pushOptions != null) {
             if (pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_WORKER)
                     || pushOptions.equals(ServerConfig.PUSH_OPTIONS_MQTT_ALARM)) {
                 try {

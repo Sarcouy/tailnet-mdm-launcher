@@ -20,6 +20,8 @@
 package com.hmdm.launcher.util;
 
 import android.annotation.SuppressLint;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -176,6 +178,7 @@ public class DeviceInfoProvider {
         deviceInfo.setLauncherType(Utils.getLauncherVariant());
         deviceInfo.setCpu(Build.CPU_ABI);
         deviceInfo.setSerial(getSerialNumber());
+        deviceInfo.setMac(getMacAddress(context));
 
         deviceInfo.setImsi(getImsi(context, 0));
         deviceInfo.setIccid(getIccid(context, 0));
@@ -399,13 +402,25 @@ public class DeviceInfoProvider {
     /**
      * Get the STB MacAddress
      */
-    public static String getMacAddress() {
+    public static String getMacAddress(Context context) {
+        String mac = null;
         try {
-            return Utils.loadFileAsString("/sys/class/net/eth0/address")
+            DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+            mac = dpm.getWifiMacAddress(adminComponentName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (mac != null) {
+            return mac;
+        }
+        try {
+            // Fallback for Ethernet-powered devices
+            mac = Utils.loadFileAsString("/sys/class/net/eth0/address")
                     .toUpperCase().substring(0, 17);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
+        return mac;
     }
 }
