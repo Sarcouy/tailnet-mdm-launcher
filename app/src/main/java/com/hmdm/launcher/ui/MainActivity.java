@@ -49,6 +49,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -411,6 +412,9 @@ public class MainActivity
         configUpdater = new ConfigUpdater(this);
 
         if ("".equals(settingsHelper.getDeviceId()) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Utils.isDeviceOwner(this)) {
+                Utils.autoGrantStoragePermission(this);
+            }
             AdminReceiver.updateSettingsFromFile(this);
         }
 
@@ -568,7 +572,7 @@ public class MainActivity
         if (!BuildConfig.SYSTEM_PRIVILEGES) {
             if (firstStartAfterProvisioning) {
                 firstStartAfterProvisioning = false;
-                waitForProvisioning(10);
+                waitForProvisioning(10, () -> setDefaultLauncherEarly());
             } else {
                 setDefaultLauncherEarly();
             }
@@ -705,9 +709,44 @@ public class MainActivity
 
             @Override
             protected void onPostExecute(Void v) {
-                setDefaultLauncherEarly();
+                if (BuildConfig.REBOOT_ON_DEVICE_OWNER_FAIL && !settingsHelper.isRebootedAfterEnrollment()) {
+                    // Attempt to reboot only once - avoid looping
+                    settingsHelper.setRebootedAfterEnrollment(true);
+                    checkIfDeviceOwnerSet();
+                } else {
+                    setDefaultLauncherEarly();
+                }
             }
         }.execute();
+    }
+
+    private void checkIfDeviceOwnerSet() {
+        waitForProvisioning(5, () -> {
+            if (!Utils.isDeviceOwner(this)) {
+                promptReboot();
+            } else {
+                setDefaultLauncherEarly();
+            }
+        });
+    }
+
+    private void promptReboot() {
+        new AlertDialog.Builder(MainActivity.this)
+                .setMessage(getString(R.string.reboot_required))
+                .setCancelable(false)
+                .setPositiveButton(R.string.reboot, (dialog, which) ->
+                        reboot())
+                .create()
+                .show();
+        handler.postDelayed(() -> reboot(), 10);
+    }
+
+    private void reboot() {
+        // This only works with system permissions
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        pm.reboot(null);
+        // Fallback
+        setDefaultLauncherEarly();
     }
 
     private void startServices() {
@@ -788,14 +827,14 @@ public class MainActivity
     // AdminReceiver may be called later than onCreate() and onResume()
     // so the launcher setup and other methods requiring device owner permissions may fail
     // Here we wait up to 10 seconds until the app gets the device owner permissions
-    private void waitForProvisioning(int attempts) {
+    private void waitForProvisioning(int attempts, Runnable onComplete) {
         if (Utils.isDeviceOwner(this) || attempts <= 0) {
-            setDefaultLauncherEarly();
+            onComplete.run();
         } else {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    waitForProvisioning(attempts - 1);
+                    waitForProvisioning(attempts - 1, onComplete);
                 }
             }, 1000);
         }

@@ -61,6 +61,7 @@ public class SettingsHelper {
     private static final String PREF_KEY_LAST_APP_UPDATE_STATE = ".helpers.LAST_APP_UPDATE_STATE";
     private static final String PREF_KEY_APP_START_TIME = ".helpers.APP_START_TIME";
     private static final String PREF_KEY_SATELLITE_COUNT = ".helpers.APP_SATELLITE_COUNT";
+    private static final String PREF_KEY_REBOOTED_AFTER_ENROLLMENT = ".helpers.REBOOTED_AFTER_ENROLLMENT";
     private static final String PREF_KEY_USER_CUSTOM_1 = ".helpers.USER_CUSTOM_1";
     private static final String PREF_KEY_USER_CUSTOM_2 = ".helpers.USER_CUSTOM_2";
     private static final String PREF_KEY_USER_CUSTOM_3 = ".helpers.USER_CUSTOM_3";
@@ -302,6 +303,14 @@ public class SettingsHelper {
 
     public Set<String> getEnrollOptionGroup() {
         return sharedPreferences.getStringSet(PACKAGE_NAME + PREF_KEY_GROUP, null);
+    }
+
+    public boolean isRebootedAfterEnrollment() {
+        return sharedPreferences.getBoolean(PACKAGE_NAME + PREF_KEY_REBOOTED_AFTER_ENROLLMENT, false);
+    }
+
+    public boolean setRebootedAfterEnrollment(boolean value) {
+        return sharedPreferences.edit().putBoolean(PACKAGE_NAME + PREF_KEY_REBOOTED_AFTER_ENROLLMENT, value ).commit();
     }
 
     public boolean setUserCustom1(String userCustom) {

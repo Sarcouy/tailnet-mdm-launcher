@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Environment;
 import android.os.PersistableBundle;
 
 import androidx.annotation.RequiresApi;
@@ -74,7 +75,11 @@ public class AdminReceiver extends DeviceAdminReceiver {
         try {
             File file = new File(context.getExternalFilesDir(null), "init.json");
             if (!file.exists()) {
-                return;
+                file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                        "hmdm_init.json");
+                if (!file.exists()) {
+                    return;
+                }
             }
             String contents = Utils.loadFileAsString(file.getAbsolutePath());
             PersistableBundle bundle = new PersistableBundle();
@@ -92,7 +97,6 @@ public class AdminReceiver extends DeviceAdminReceiver {
             updateSettings(context, bundle);
         } catch (Exception e) {
             e.printStackTrace();
-            return;
         }
     }
 
@@ -136,8 +140,17 @@ public class AdminReceiver extends DeviceAdminReceiver {
                 serverProject = bundle.getString(Const.QR_SERVER_PROJECT_ATTR, null);
                 certUrls = bundle.getString(Const.QR_CERTS_ATTR, null);
                 createOptions.setCustomer(bundle.getString(Const.QR_CUSTOMER_ATTR, null));
+                if (createOptions.getCustomer() == null) {
+                    createOptions.setCustomer(BuildConfig.ENROLLMENT_CUSTOMER);
+                }
                 createOptions.setConfiguration(bundle.getString(Const.QR_CONFIG_ATTR, null));
+                if (createOptions.getConfiguration() == null) {
+                    createOptions.setConfiguration(BuildConfig.ENROLLMENT_CONFIG_KEY);
+                }
                 createOptions.setGroups(bundle.getString(Const.QR_GROUP_ATTR, null));
+                if (createOptions.getGroups() == null) {
+                    createOptions.setGroups(BuildConfig.ENROLLMENT_GROUPS);
+                }
                 if (baseUrl != null) {
                     PreferenceLogger.log(preferences, "BaseURL: " + baseUrl);
                     settingsHelper.setBaseUrl(baseUrl);

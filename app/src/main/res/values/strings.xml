@@ -132,6 +132,7 @@
     <string name="admin_not_supported">Your device has no device administrator option. Click Skip to continue.</string>
     <string name="manage_storage_not_supported">Your device has no option to manage the external storage.</string>
     <string name="certificate_install_failed">Failed to install certificate %1$s: %2$s</string>
+    <string name="reboot_required">To complete the provisioning, the device needs to be rebooted.</string>
 
     <string-array name="certificates" translatable="false">
         <!-- If you want to install custom SSL certificates, place them in assets folder

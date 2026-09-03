@@ -128,4 +128,5 @@
     <string name="admin_not_supported">Az eszközön nincs eszközadminisztrátori lehetőség. A folytatáshoz koppintson a Kihagyás gombra.</string>
     <string name="manage_storage_not_supported">Az eszközön nincs lehetőség a külső tárhely kezelésére.</string>
     <string name="certificate_install_failed">A(z) %1$s tanúsítvány telepítése sikertelen: %2$s</string>
+    <string name="reboot_required">A kiépítés befejezéséhez újra kell indítani az eszközt.</string>
 </resources>

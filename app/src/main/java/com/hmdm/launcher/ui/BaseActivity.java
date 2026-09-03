@@ -233,8 +233,17 @@ public class BaseActivity extends AppCompatActivity {
 
             DeviceEnrollOptions createOptions = new DeviceEnrollOptions();
             createOptions.setCustomer(extras.optString(Const.QR_CUSTOMER_ATTR, null));
+            if (createOptions.getCustomer() == null) {
+                createOptions.setCustomer(BuildConfig.ENROLLMENT_CUSTOMER);
+            }
             createOptions.setConfiguration(extras.optString(Const.QR_CONFIG_ATTR, null));
+            if (createOptions.getConfiguration() == null) {
+                createOptions.setConfiguration(BuildConfig.ENROLLMENT_CONFIG_KEY);
+            }
             createOptions.setGroups(extras.optString(Const.QR_GROUP_ATTR, null));
+            if (createOptions.getGroups() == null) {
+                createOptions.setGroups(BuildConfig.ENROLLMENT_GROUPS);
+            }
             if (createOptions.getCustomer() != null) {
                 Log.d(Const.LOG_TAG, "Customer: " + createOptions.getCustomer());
                 settingsHelper.setEnrollOptionCustomer(createOptions.getCustomer());

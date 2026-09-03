@@ -129,6 +129,46 @@ public class Utils {
         return true;
     }
 
+    // Automatically grant storage permission to get external config JSON
+    @TargetApi(Build.VERSION_CODES.M)
+    public static boolean autoGrantStoragePermission(Context context) {
+        try {
+            DevicePolicyManager devicePolicyManager = (DevicePolicyManager) context.getSystemService(
+                    Context.DEVICE_POLICY_SERVICE);
+            ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.WRITE_EXTERNAL_STORAGE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            } else {
+                if (devicePolicyManager.getPermissionGrantState(adminComponentName,
+                        context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE) != DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED) {
+                    boolean success = devicePolicyManager.setPermissionGrantState(adminComponentName,
+                            context.getPackageName(), Manifest.permission.MANAGE_EXTERNAL_STORAGE, DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED);
+                    if (!success) {
+                        return false;
+                    }
+                }
+            }
+        } catch (NoSuchMethodError e) {
+            // This exception is raised on Android 5.1
+            e.printStackTrace();
+            return false;
+        } catch (/* SecurityException */ Exception e) {
+            // No active admin ComponentInfo (not sure why could that happen)
+            e.printStackTrace();
+            return false;
+        }
+        Log.i(Const.LOG_TAG, "MANAGE_EXTERNAL_STORAGE automatically granted");
+        return true;
+    }
+
     // Automatically get dangerous permissions
     // Notice: default (null) app permission strategy is "Grant all"
     @TargetApi(Build.VERSION_CODES.M)
