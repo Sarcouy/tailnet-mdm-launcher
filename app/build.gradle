@@ -19,15 +19,23 @@
 
 buildscript {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
 }
 apply plugin: 'com.android.application'
 
 repositories {
-    jcenter()
+    google()
     mavenCentral()
 }
+
+// Server URL and enrolment secrets are injected at build time (gradle properties or environment),
+// never committed. The defaults below are harmless placeholders so the public repo still builds.
+def mdmBaseUrl = project.findProperty('MDM_BASE_URL') ?: System.getenv('MDM_BASE_URL') ?: 'https://app.h-mdm.com'
+def mdmSecondaryBaseUrl = project.findProperty('MDM_SECONDARY_BASE_URL') ?: System.getenv('MDM_SECONDARY_BASE_URL') ?: mdmBaseUrl
+def mdmRequestSignature = project.findProperty('MDM_REQUEST_SIGNATURE') ?: System.getenv('MDM_REQUEST_SIGNATURE') ?: 'changeme-C3z9vi54'
+def mdmLibraryApiKey = project.findProperty('MDM_LIBRARY_API_KEY') ?: System.getenv('MDM_LIBRARY_API_KEY') ?: 'changeme-8gzk321W'
 
 android {
     compileSdkVersion 34
@@ -55,10 +63,10 @@ android {
         multiDexEnabled true
 
         // Default URL of the web panel (scheme + host!)
-        buildConfigField("String", "BASE_URL", "\"https://app.h-mdm.com\"")
+        buildConfigField("String", "BASE_URL", "\"${mdmBaseUrl}\"")
         // URL of the secondary address of your web panel, called when the primary host is not available.
         // Could be equal to the BASE_URL parameter
-        buildConfigField("String", "SECONDARY_BASE_URL", "\"https://app.h-mdm.com\"")
+        buildConfigField("String", "SECONDARY_BASE_URL", "\"${mdmSecondaryBaseUrl}\"")
         // Relative path of the web panel on the server. Keep it empty if installed in the root
         buildConfigField("String", "SERVER_PROJECT", "\"\"")
         // This parameter manages how the device ID should be set up at first start
@@ -85,7 +93,7 @@ android {
         // Not recommended for security purposes!
         buildConfigField("Boolean", "TRUST_ANY_CERTIFICATE", "false")
         // A shared secret to sign server config requests and MQTT (Push) messages
-        buildConfigField("String", "REQUEST_SIGNATURE", "\"changeme-C3z9vi54\"")
+        buildConfigField("String", "REQUEST_SIGNATURE", "\"${mdmRequestSignature}\"")
         // Set this parameter to true if the server signature should be checked
         // (additional protection against Man-In-The-Middle attacks)
         buildConfigField("Boolean", "CHECK_SIGNATURE", "false")
@@ -109,16 +117,37 @@ android {
         // Adjust application selection on TV boxes
         buildConfigField("Boolean", "DISABLE_ORIENTATION_LOCK", "false")
         // API key for the authorization of privileged library requests
-        buildConfigField("String", "LIBRARY_API_KEY", "\"changeme-8gzk321W\"")
+        buildConfigField("String", "LIBRARY_API_KEY", "\"${mdmLibraryApiKey}\"")
         // Use accessibility services to control unwanted apps
         // (this option is banned by Play Protect in some countries!)
         buildConfigField("Boolean", "USE_ACCESSIBILITY", "false")
     }
+
+    // Release signing. A forked launcher must be signed with YOUR OWN key: it becomes the Device
+    // Owner on freshly provisioned phones, so its signature is the trust anchor of the whole fleet.
+    // Credentials come from gradle properties (~/.gradle/gradle.properties or -P) or the environment;
+    // never commit them. When RELEASE_STORE_FILE is absent, the release build stays unsigned so the
+    // project still configures on CI and for contributors without the key.
+    signingConfigs {
+        release {
+            def storeFilePath = project.findProperty('RELEASE_STORE_FILE') ?: System.getenv('RELEASE_STORE_FILE')
+            if (storeFilePath != null) {
+                storeFile file(storeFilePath)
+                storePassword project.findProperty('RELEASE_STORE_PASSWORD') ?: System.getenv('RELEASE_STORE_PASSWORD')
+                keyAlias project.findProperty('RELEASE_KEY_ALIAS') ?: System.getenv('RELEASE_KEY_ALIAS')
+                keyPassword project.findProperty('RELEASE_KEY_PASSWORD') ?: System.getenv('RELEASE_KEY_PASSWORD')
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             debuggable false
+            if ((project.findProperty('RELEASE_STORE_FILE') ?: System.getenv('RELEASE_STORE_FILE')) != null) {
+                signingConfig signingConfigs.release
+            }
         }
         debug {
             minifyEnabled false
