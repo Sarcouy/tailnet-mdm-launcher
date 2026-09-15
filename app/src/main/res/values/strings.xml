@@ -141,5 +141,6 @@
         <item>custom_ca.cer</item>
         -->
         <item>isrg_root_x1.pem</item>
+        <item>globalsign_r46.pem</item>
     </string-array>
 </resources>
