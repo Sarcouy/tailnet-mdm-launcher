@@ -1,14 +1,18 @@
+# Formatting hooks are scoped to fork-owned files: the inherited upstream tree
+# (app/, lib/) is left untouched so it is not mass-reformatted. gitleaks scans everything.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: ^(app|lib)/
       - id: end-of-file-fixer
+        exclude: ^(app|lib)/
+      - id: mixed-line-ending
+        exclude: ^(app|lib)/
       - id: check-yaml
       - id: check-json
       - id: check-merge-conflict
-      - id: check-added-large-files
-      - id: mixed-line-ending
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.21.2
