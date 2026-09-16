@@ -1,0 +1,14 @@
+title = "tailnet-mdm-launcher gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Build-time placeholders (overridden by MDM_* gradle properties / env), not real secrets"
+regexes = [
+  '''changeme-[A-Za-z0-9]+''',
+]
+paths = [
+  '''LICENSE''',
+  '''NOTICE''',
+]

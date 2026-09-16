@@ -456,6 +456,22 @@ public class ConfigUpdater {
             }
         }
 
+        // Set up the always-on VPN, a Device Owner-only policy the stock launcher does not expose.
+        // Configured through Application settings pushed to the launcher's own package, exactly like
+        // the proxy above:
+        //   always_on_vpn           -> VPN package to force (e.g. com.tailscale.ipn); "0" clears it
+        //   always_on_vpn_lockdown  -> "false" to disable the kill switch (default: enabled)
+        //   always_on_vpn_allowlist -> comma-separated packages exempt from the lockdown when the VPN is down
+        if (Utils.isDeviceOwner(context)) {
+            String alwaysOnVpn = settingsHelper.getAppPreference(context.getPackageName(), "always_on_vpn");
+            if (alwaysOnVpn != null) {
+                String lockdownPref = settingsHelper.getAppPreference(context.getPackageName(), "always_on_vpn_lockdown");
+                boolean lockdown = lockdownPref == null || !lockdownPref.trim().equalsIgnoreCase("false");
+                String allowlist = settingsHelper.getAppPreference(context.getPackageName(), "always_on_vpn_allowlist");
+                Utils.setAlwaysOnVpn(context, alwaysOnVpn, lockdown, allowlist);
+            }
+        }
+
         if (uiNotifier != null) {
             uiNotifier.onPoliciesUpdated();
         }

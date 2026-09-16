@@ -66,6 +66,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -1066,6 +1067,65 @@ public class Utils {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // Applies the always-on VPN device policy. This is the piece the stock launcher lacks:
+    // setAlwaysOnVpnPackage is persistent, so once the Device Owner sets it the OS brings the
+    // tunnel up on every boot and, with lockdown enabled, blocks all traffic while it is down
+    // (the OS-level kill switch the user cannot turn off). vpnPackage=null, empty or "0" clears it
+    // (same convention as the proxy preference).
+    public static boolean setAlwaysOnVpn(Context context, String vpnPackage, boolean lockdown, String allowlist) {
+        if (!isDeviceOwner(context) || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return false;
+        }
+        ComponentName adminComponentName = LegacyUtils.getAdminComponentName(context);
+        DevicePolicyManager dpm = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        if (dpm == null) {
+            return false;
+        }
+        try {
+            if (vpnPackage == null || vpnPackage.trim().isEmpty() || vpnPackage.trim().equals("0")) {
+                dpm.setAlwaysOnVpnPackage(adminComponentName, null, false);
+                RemoteLogger.log(context, Const.LOG_INFO, "Always-on VPN cleared");
+                return true;
+            }
+            vpnPackage = vpnPackage.trim();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                dpm.setAlwaysOnVpnPackage(adminComponentName, vpnPackage, lockdown, parsePackageSet(allowlist));
+            } else {
+                // API 26-28: no lockdown allowlist overload available
+                dpm.setAlwaysOnVpnPackage(adminComponentName, vpnPackage, lockdown);
+            }
+            RemoteLogger.log(context, Const.LOG_INFO,
+                    "Always-on VPN set to " + vpnPackage + " (lockdown=" + lockdown + ")");
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            RemoteLogger.log(context, Const.LOG_WARN,
+                    "Always-on VPN not set: target package " + vpnPackage + " is not installed");
+            return false;
+        } catch (UnsupportedOperationException e) {
+            RemoteLogger.log(context, Const.LOG_WARN,
+                    "Always-on VPN not set: " + vpnPackage + " does not support always-on (no VpnService)");
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            RemoteLogger.log(context, Const.LOG_WARN,
+                    "Failed to set always-on VPN " + vpnPackage + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+    private static Set<String> parsePackageSet(String csv) {
+        Set<String> result = new HashSet<>();
+        if (csv != null) {
+            for (String p : csv.split(",")) {
+                String trimmed = p.trim();
+                if (!trimmed.isEmpty()) {
+                    result.add(trimmed);
+                }
+            }
+        }
+        return result;
     }
 
     /**

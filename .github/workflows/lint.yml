@@ -1,0 +1,27 @@
+name: lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Scan only the commits this fork adds on top of upstream (baseline..HEAD),
+      # so inherited upstream history is not our responsibility to police here.
+      - name: Scan fork commits for secrets
+        run: |
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2 \
+            detect --source /repo \
+            --config /repo/.gitleaks.toml \
+            --log-opts="c9221a1f8a71c4bd4617b5b62f524e4d5633f9c8..HEAD" \
+            --redact --no-banner

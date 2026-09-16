@@ -8,3 +8,15 @@
 .externalNativeBuild
 example/
 app/release
+app/build
+
+# Signing and secrets — never commit. Injected via ~/.gradle/gradle.properties, -P or the environment.
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+release.properties
+/.claude/
+
+# Internal working notes (French, reference infrastructure specifics) — kept out of the public repo
+/docs/reference-headwind-tailscale.md
