@@ -1099,9 +1099,15 @@ public class Utils {
             RemoteLogger.log(context, Const.LOG_INFO,
                     "Always-on VPN set to " + vpnPackage + " (lockdown=" + lockdown + ")");
             return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            RemoteLogger.log(context, Const.LOG_WARN,
+                    "Always-on VPN not set: target package " + vpnPackage + " is not installed");
+            return false;
+        } catch (UnsupportedOperationException e) {
+            RemoteLogger.log(context, Const.LOG_WARN,
+                    "Always-on VPN not set: " + vpnPackage + " does not support always-on (no VpnService)");
+            return false;
         } catch (Exception e) {
-            // UnsupportedOperationException: the VPN app opted out of always-on support.
-            // PackageManager.NameNotFoundException: the VPN app is not installed yet.
             e.printStackTrace();
             RemoteLogger.log(context, Const.LOG_WARN,
                     "Failed to set always-on VPN " + vpnPackage + ": " + e.getMessage());
