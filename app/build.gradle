@@ -36,6 +36,7 @@ def mdmBaseUrl = project.findProperty('MDM_BASE_URL') ?: System.getenv('MDM_BASE
 def mdmSecondaryBaseUrl = project.findProperty('MDM_SECONDARY_BASE_URL') ?: System.getenv('MDM_SECONDARY_BASE_URL') ?: mdmBaseUrl
 def mdmRequestSignature = project.findProperty('MDM_REQUEST_SIGNATURE') ?: System.getenv('MDM_REQUEST_SIGNATURE') ?: 'changeme-C3z9vi54'
 def mdmLibraryApiKey = project.findProperty('MDM_LIBRARY_API_KEY') ?: System.getenv('MDM_LIBRARY_API_KEY') ?: 'changeme-8gzk321W'
+def mdmCheckSignature = (project.findProperty('MDM_CHECK_SIGNATURE') ?: System.getenv('MDM_CHECK_SIGNATURE') ?: 'false').toString().toLowerCase() == 'true'
 
 android {
     compileSdkVersion 34
@@ -96,7 +97,7 @@ android {
         buildConfigField("String", "REQUEST_SIGNATURE", "\"${mdmRequestSignature}\"")
         // Set this parameter to true if the server signature should be checked
         // (additional protection against Man-In-The-Middle attacks)
-        buildConfigField("Boolean", "CHECK_SIGNATURE", "false")
+        buildConfigField("Boolean", "CHECK_SIGNATURE", "${mdmCheckSignature}")
         // ANR watchdog flag (for testing purposes only as this watchdog may drain the resources!)
         buildConfigField("Boolean", "ANR_WATCHDOG", "false")
         // If set to true, the server URL will be requested in UI in non-MDM mode even if it is hardcoded in build.gradle

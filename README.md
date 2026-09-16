@@ -58,7 +58,8 @@ environment variables):
 | --- | --- |
 | `MDM_BASE_URL` | Base URL of your Headwind server (scheme + host). |
 | `MDM_SECONDARY_BASE_URL` | Fallback URL. Defaults to `MDM_BASE_URL`. |
-| `MDM_REQUEST_SIGNATURE` | Shared secret expected by the server (`secure.enrollment`). |
+| `MDM_REQUEST_SIGNATURE` | Shared secret expected by the server (`secure.enrollment`); must equal the server's `hash.secret`. |
+| `MDM_CHECK_SIGNATURE` | `true` makes the agent also verify the server's signature (mutual, anti-MITM). Default `false`. |
 | `MDM_LIBRARY_API_KEY` | API key for privileged library requests. |
 | `RELEASE_STORE_FILE` | Path to your signing keystore. |
 | `RELEASE_STORE_PASSWORD` / `RELEASE_KEY_ALIAS` / `RELEASE_KEY_PASSWORD` | Signing credentials. |
